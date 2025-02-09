@@ -15,7 +15,7 @@ const createUser = z.object({
   body: z.object({
     name: z.string({ required_error: "Name field is required." }),
     email: z.string({ required_error: "Email must be a valid email address." }).email(),
-    password: z.string().min(8, "Password must be at least 8 characters long."),
+    password: z.string().min(6, "Password must be at least 6 characters long."),
     bloodGroup: BloodGroup.optional(),
     gender: z.enum(["MALE", "FEMALE", "OTHERS"]).optional(),
     city: z.string({ required_error: "city field is required." }).default(""),
