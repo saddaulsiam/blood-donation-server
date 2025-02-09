@@ -8,7 +8,7 @@ const updateProfile = z.object({
     gender: z.enum(["MALE", "FEMALE", "OTHERS"]).optional(),
     city: z.string().optional(),
     availability: z.boolean().optional(),
-    bio: z.string().min(1, "Bio cannot be empty").optional(),
+    bio: z.string().optional(),
     age: z.number().int().positive().optional(),
     photo: z.string().optional(),
     lastDonationDate: z
