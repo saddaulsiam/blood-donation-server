@@ -46,7 +46,7 @@ model Request {
   phoneNumber    String
   dateOfDonation String
   hospitalName   String
-  city         String
+  city           String
   status         RequestStatus @default(PENDING)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt

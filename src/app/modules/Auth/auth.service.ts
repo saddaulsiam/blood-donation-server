@@ -64,7 +64,7 @@ const loginUser = async (payload: { email: string; password: string }) => {
       email: userData.email,
       id: userData.id,
     },
-    config.jwt.jwt_secret as Secret,
+    config.jwt.jwt_secret!,
     config.jwt.expires_in as string
   );
 
@@ -73,7 +73,7 @@ const loginUser = async (payload: { email: string; password: string }) => {
       email: userData.email,
       // role: userData.role,
     },
-    config.jwt.refresh_token_secret as Secret,
+    config.jwt.refresh_token_secret!,
     config.jwt.refresh_token_expires_in as string
   );
   const { password, ...restOfUserData } = userData;
