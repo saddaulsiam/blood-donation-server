@@ -13,7 +13,7 @@ const createRequest = catchAsync(async (req: Request & { user?: IAuthUser }, res
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Success Message",
+    message: "Request Successful",
     data: result,
   });
 });
