@@ -17,9 +17,11 @@ model User {
   city         String?
   area         String?
   availability Boolean     @default(false)
+  profile      Profile?
+  role         UserRole    @default(USER)
+  status       UserStatus  @default(ACTIVE)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  profile      Profile?
 
   requestsAsDonor     Request[] @relation("DonorRequests")
   requestsAsRequester Request[] @relation("RequesterRequests")
@@ -78,10 +80,8 @@ enum RequestStatus {
 }
 
 enum UserRole {
-  SUPER_ADMIN
   ADMIN
-  DOCTOR
-  PATIENT
+  USER
 }
 
 enum UserStatus {
@@ -93,5 +93,4 @@ enum UserStatus {
 enum Gender {
   MALE
   FEMALE
-  OTHERS
 }

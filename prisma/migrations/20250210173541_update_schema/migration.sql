@@ -2,10 +2,10 @@
 CREATE TYPE "BloodGroup" AS ENUM ('A_POSITIVE', 'A_NEGATIVE', 'B_POSITIVE', 'B_NEGATIVE', 'AB_POSITIVE', 'AB_NEGATIVE', 'O_POSITIVE', 'O_NEGATIVE');
 
 -- CreateEnum
-CREATE TYPE "RequestStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+CREATE TYPE "RequestStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'CANCEL', 'SUCCESSFUL');
 
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PATIENT');
+CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'USER');
 
 -- CreateEnum
 CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'BLOCKED', 'DELETED');
@@ -20,9 +20,12 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "bloodGroup" "BloodGroup",
-    "reason" TEXT NOT NULL,
-    "address" TEXT,
+    "gender" "Gender",
+    "city" TEXT,
+    "area" TEXT,
     "availability" BOOLEAN NOT NULL DEFAULT false,
+    "role" "UserRole" NOT NULL DEFAULT 'USER',
+    "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -48,11 +51,12 @@ CREATE TABLE "requests" (
     "id" TEXT NOT NULL,
     "donorId" TEXT NOT NULL,
     "requesterId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
     "phoneNumber" TEXT NOT NULL,
     "dateOfDonation" TEXT NOT NULL,
     "hospitalName" TEXT NOT NULL,
-    "hospitalAddress" TEXT NOT NULL,
-    "reason" TEXT NOT NULL,
+    "city" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
     "status" "RequestStatus" NOT NULL DEFAULT 'PENDING',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
