@@ -5,6 +5,7 @@ export type RequestDonar = {
   dateOfDonation: string;
   hospitalName: string;
   city: string;
+  message: string;
 };
 
 export type Status = {

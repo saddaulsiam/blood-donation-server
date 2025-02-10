@@ -39,6 +39,7 @@ const createRequest = async (user: IAuthUser, payload: RequestDonar) => {
       dateOfDonation: payload.dateOfDonation,
       hospitalName: payload.hospitalName,
       city: payload.city,
+      message: payload.message,
     },
     // include: {
     //   donor: {
