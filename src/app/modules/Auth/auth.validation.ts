@@ -30,6 +30,12 @@ const verifyEmail = z.object({
   }),
 });
 
+const resendVerificationCode = z.object({
+  body: z.object({
+    email: z.string({ required_error: "Email must be a valid email address." }).email(),
+  }),
+});
+
 const loginUser = z.object({
   body: z.object({
     email: z.string(),
@@ -40,5 +46,6 @@ const loginUser = z.object({
 export const AuthValidation = {
   createUser,
   verifyEmail,
+  resendVerificationCode,
   loginUser,
 };

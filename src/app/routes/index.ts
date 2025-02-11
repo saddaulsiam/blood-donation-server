@@ -12,13 +12,15 @@ const router = express.Router();
 
 // auth
 router.post("/register", validateRequest(AuthValidation.createUser), AuthController.registerUser);
-
 router.post("/verify-email", validateRequest(AuthValidation.verifyEmail), AuthController.verifyEmail);
-
+router.post(
+  "/resend-verification-code",
+  validateRequest(AuthValidation.resendVerificationCode),
+  AuthController.resendVerificationCode
+);
 router.post("/login", validateRequest(AuthValidation.loginUser), AuthController.loginUser);
 
 // user management
-
 router
   .route("/my-profile")
   .get(auth(), UserControllers.getMyProfile)

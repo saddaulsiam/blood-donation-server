@@ -107,6 +107,44 @@ const verifyEmail = async (payload: { email: string; code: string }) => {
   return result;
 };
 
+const resendVerificationCode = async ({ email }: { email: string }) => {
+  // Check if user exists
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: { EmailVerification: true },
+  });
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  // Generate new verification code
+  const newCode = generateVerificationCode();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  if (user.EmailVerification) {
+    // Update existing verification code
+    await prisma.emailVerification.update({
+      where: { userId: user.id },
+      data: { code: newCode, expiresAt },
+    });
+  } else {
+    // Create new verification entry
+    await prisma.emailVerification.create({
+      data: {
+        userId: user.id,
+        code: newCode,
+        expiresAt,
+      },
+    });
+  }
+
+  // Send email with new code
+  await sendVerificationEmail(user.email, newCode);
+
+  return { success: true, message: "Verification code resent" };
+};
+
 const loginUser = async (payload: { email: string; password: string }) => {
   const userData = await prisma.user.findUniqueOrThrow({
     where: {
@@ -283,6 +321,7 @@ const loginUser = async (payload: { email: string; password: string }) => {
 export const AuthServices = {
   registerUser,
   verifyEmail,
+  resendVerificationCode,
   loginUser,
   // refreshToken,
   // changePassword,
