@@ -5,9 +5,11 @@ import httpStatus from "http-status";
 import config from "../../../config";
 import { generateVerificationCode } from "../../../helpers/generateVerificationCode";
 import { jwtHelpers } from "../../../helpers/jwtHelpers";
-import { sendVerificationEmail } from "../../../helpers/sendVerificationEmail";
 import prisma from "../../../shared/prisma";
 import AppError from "../../errors/AppError";
+import { sendEmail } from "../../../helpers/sendEmail";
+import { generateResetPasswordEmail } from "../../../helpers/generateResetPasswordEmail";
+import { generateVerificationEmail } from "../../../helpers/generateVerificationEmail";
 
 const registerUser = async (req: Request) => {
   const hashedPassword: string = await bcrypt.hash(req.body.password, 12);
@@ -49,7 +51,12 @@ const registerUser = async (req: Request) => {
     });
 
     // sand verification email to user
-    await sendVerificationEmail(others.email, verificationCode);
+    await sendEmail({
+      email: others.email,
+      subject: "Your Verification Code",
+      message: `Your verification code is ${verificationCode}.`,
+      htmlMessage: generateVerificationEmail(verificationCode),
+    });
 
     return {
       ...others,
@@ -139,7 +146,12 @@ const resendVerificationCode = async ({ email }: { email: string }) => {
   }
 
   // Send email with new code
-  await sendVerificationEmail(user.email, newCode);
+  await sendEmail({
+    email: user.email,
+    subject: "Your Verification Code",
+    message: `Your verification code is ${newCode}.`,
+    htmlMessage: generateVerificationEmail(newCode),
+  });
 
   return { success: true, message: "Verification code resent" };
 };
@@ -221,12 +233,16 @@ const loginUser = async (payload: { email: string; password: string }) => {
 // };
 
 const forgotPassword = async (payload: { email: string }) => {
-  const userData = await prisma.user.findUniqueOrThrow({
+  const userData = await prisma.user.findUnique({
     where: {
       email: payload.email,
       status: UserStatus.ACTIVE,
     },
   });
+
+  if (!userData) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
 
   const resetPassToken = jwtHelpers.generateToken(
     { email: userData.email, role: userData.role },
@@ -236,22 +252,12 @@ const forgotPassword = async (payload: { email: string }) => {
 
   const resetPassLink = config.reset_pass_link + `?userId=${userData.id}&token=${resetPassToken}`;
 
-  await sendVerificationEmail(
-    userData.email,
-    `
-        <div>
-            <p>Dear User,</p>
-            <p>Your password reset link
-                <a href=${resetPassLink}>
-                    <button>
-                        Reset Password
-                    </button>
-                </a>
-            </p>
-
-        </div>
-        `
-  );
+  await sendEmail({
+    email: userData.email,
+    subject: "Reset Your Password",
+    message: `Click the link to reset your password: ${resetPassLink}`,
+    htmlMessage: generateResetPasswordEmail(resetPassLink),
+  });
 };
 
 const resetPassword = async (token: string, payload: { id: string; password: string }) => {

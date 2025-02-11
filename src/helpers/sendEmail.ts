@@ -1,9 +1,17 @@
-// utils/mailer.ts
 import nodemailer from "nodemailer";
 import config from "../config";
 
-export const sendVerificationEmail = async (email: string, code: string) => {
-  // Configure the transporter. Here we use Gmail as an example.
+export const sendEmail = async ({
+  email,
+  subject,
+  message,
+  htmlMessage,
+}: {
+  email: string;
+  subject: string;
+  message?: string;
+  htmlMessage?: string;
+}) => {
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
@@ -15,8 +23,9 @@ export const sendVerificationEmail = async (email: string, code: string) => {
   const mailOptions = {
     from: config.email.email_user,
     to: email,
-    subject: "Blood Donation Verification Code",
-    text: `Your verification code is ${code}. It expires in 10 minutes.`,
+    subject,
+    text: message,
+    html: htmlMessage,
   };
 
   await transporter.sendMail(mailOptions);
