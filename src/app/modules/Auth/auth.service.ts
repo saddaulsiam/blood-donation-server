@@ -66,7 +66,7 @@ const verifyEmail = async (payload: { email: string; code: string }) => {
   // Fetch the user along with its EmailVerification record
   const user = await prisma.user.findUnique({
     where: { email },
-    include: { EmailVerification: true },
+    include: { EmailVerification: true, profile: true },
   });
 
   if (!user) {
@@ -75,7 +75,7 @@ const verifyEmail = async (payload: { email: string; code: string }) => {
 
   // Check if the user is already verified
   if (user.isEmailVerified) {
-    return { success: true, message: "Email is already verified" };
+    return { success: true, message: "Email is already verified", user };
   }
 
   const emailVerification = user.EmailVerification;
@@ -90,17 +90,20 @@ const verifyEmail = async (payload: { email: string; code: string }) => {
   }
 
   // Atomically update the user as verified and remove the verification record
-  await prisma.$transaction(async (tx) => {
-    await tx.user.update({
+  const result = await prisma.$transaction(async (tx) => {
+    const { password, ...updatedUser } = await tx.user.update({
       where: { email },
       data: { isEmailVerified: true, status: "ACTIVE" },
+      include: { profile: true },
     });
     await tx.emailVerification.delete({
       where: { userId: user.id },
     });
+
+    return updatedUser;
   });
 
-  return { success: true, message: "Email successfully verified" };
+  return result;
 };
 
 const loginUser = async (payload: { email: string; password: string }) => {
