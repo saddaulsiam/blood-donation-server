@@ -8,7 +8,7 @@ CREATE TYPE "RequestStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'CANCEL'
 CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'USER');
 
 -- CreateEnum
-CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'BLOCKED', 'DELETED');
+CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'BLOCKED', 'DELETED');
 
 -- CreateEnum
 CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE');
@@ -25,7 +25,8 @@ CREATE TABLE "User" (
     "area" TEXT,
     "availability" BOOLEAN NOT NULL DEFAULT false,
     "role" "UserRole" NOT NULL DEFAULT 'USER',
-    "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
+    "status" "UserStatus" NOT NULL DEFAULT 'INACTIVE',
+    "isEmailVerified" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -44,6 +45,16 @@ CREATE TABLE "Profile" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Profile_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "emailVerify" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "emailVerify_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -70,8 +81,14 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 -- CreateIndex
 CREATE UNIQUE INDEX "Profile_userId_key" ON "Profile"("userId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "emailVerify_userId_key" ON "emailVerify"("userId");
+
 -- AddForeignKey
 ALTER TABLE "Profile" ADD CONSTRAINT "Profile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "emailVerify" ADD CONSTRAINT "emailVerify_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "requests" ADD CONSTRAINT "requests_donorId_fkey" FOREIGN KEY ("donorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -8,6 +8,7 @@ import { generateVerificationCode } from "../../../helpers/generateVerificationC
 import { sendVerificationEmail } from "../../../helpers/sendVerificationEmail";
 import AppError from "../../errors/AppError";
 import httpStatus from "http-status";
+import { UserStatus } from "@prisma/client";
 
 const registerUser = async (req: Request) => {
   const hashedPassword: string = await bcrypt.hash(req.body.password, 12);
@@ -110,12 +111,16 @@ const loginUser = async (payload: { email: string; password: string }) => {
   const userData = await prisma.user.findUniqueOrThrow({
     where: {
       email: payload.email,
-      // status: UserStatus.ACTIVE,
+      status: UserStatus.ACTIVE,
     },
     include: {
       profile: true,
     },
   });
+
+  if (!userData) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
 
   const isCorrectPassword: boolean = await bcrypt.compare(payload.password, userData.password);
 

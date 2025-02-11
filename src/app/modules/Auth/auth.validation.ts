@@ -13,7 +13,7 @@ export const BloodGroup = z.enum([
 
 const createUser = z.object({
   body: z.object({
-    name: z.string({ required_error: "Name field is required." }),
+    name: z.string({ required_error: "Name field is required." }).min(3, "Name at least 3 characters"),
     email: z.string({ required_error: "Email must be a valid email address." }).email(),
     password: z.string().min(6, "Password must be at least 6 characters long."),
     bloodGroup: BloodGroup.optional(),
