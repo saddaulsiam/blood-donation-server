@@ -93,7 +93,7 @@ const verifyEmail = async (payload: { email: string; code: string }) => {
   await prisma.$transaction(async (tx) => {
     await tx.user.update({
       where: { email },
-      data: { isEmailVerified: true },
+      data: { isEmailVerified: true, status: "ACTIVE" },
     });
     await tx.emailVerification.delete({
       where: { userId: user.id },
