@@ -1,14 +1,13 @@
+import { UserStatus } from "@prisma/client";
 import * as bcrypt from "bcrypt";
 import { Request } from "express";
-import { Secret } from "jsonwebtoken";
-import config from "../../../config";
-import { jwtHelpers } from "../../../helpers/jwtHelpers";
-import prisma from "../../../shared/prisma";
-import { generateVerificationCode } from "../../../helpers/generateVerificationCode";
-import { sendVerificationEmail } from "../../../helpers/sendVerificationEmail";
-import AppError from "../../errors/AppError";
 import httpStatus from "http-status";
-import { UserStatus } from "@prisma/client";
+import config from "../../../config";
+import { generateVerificationCode } from "../../../helpers/generateVerificationCode";
+import { jwtHelpers } from "../../../helpers/jwtHelpers";
+import { sendVerificationEmail } from "../../../helpers/sendVerificationEmail";
+import prisma from "../../../shared/prisma";
+import AppError from "../../errors/AppError";
 
 const registerUser = async (req: Request) => {
   const hashedPassword: string = await bcrypt.hash(req.body.password, 12);
@@ -194,7 +193,7 @@ const loginUser = async (payload: { email: string; password: string }) => {
 // const refreshToken = async (token: string) => {
 //   let decodedData;
 //   try {
-//     decodedData = jwtHelpers.verifyToken(token, config.jwt.refresh_token_secret as Secret);
+//     decodedData = jwtHelpers.verifyToken(token, config.jwt.refresh_token_secret!);
 //   } catch (err) {
 //     throw new Error("You are not authorized!");
 //   }
@@ -211,112 +210,79 @@ const loginUser = async (payload: { email: string; password: string }) => {
 //       email: userData.email,
 //       role: userData.role,
 //     },
-//     config.jwt.jwt_secret as Secret,
-//     config.jwt.expires_in as string
+//     config.jwt.jwt_secret!,
+//     config.jwt.expires_in!
 //   );
 
 //   return {
 //     accessToken,
-//     needPasswordChange: userData.needPasswordChange,
+//     // needPasswordChange: userData.needPasswordChange,
 //   };
 // };
 
-// const changePassword = async (user: any, payload: any) => {
-//   const userData = await prisma.user.findUniqueOrThrow({
-//     where: {
-//       email: user.email,
-//       status: UserStatus.ACTIVE,
-//     },
-//   });
+const forgotPassword = async (payload: { email: string }) => {
+  const userData = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: payload.email,
+      status: UserStatus.ACTIVE,
+    },
+  });
 
-//   const isCorrectPassword: boolean = await bcrypt.compare(payload.oldPassword, userData.password);
+  const resetPassToken = jwtHelpers.generateToken(
+    { email: userData.email, role: userData.role },
+    config.jwt.reset_pass_secret!,
+    config.jwt.reset_pass_token_expires_in!
+  );
 
-//   if (!isCorrectPassword) {
-//     throw new Error("Password incorrect!");
-//   }
+  const resetPassLink = config.reset_pass_link + `?userId=${userData.id}&token=${resetPassToken}`;
 
-//   const hashedPassword: string = await bcrypt.hash(payload.newPassword, 12);
+  await sendVerificationEmail(
+    userData.email,
+    `
+        <div>
+            <p>Dear User,</p>
+            <p>Your password reset link
+                <a href=${resetPassLink}>
+                    <button>
+                        Reset Password
+                    </button>
+                </a>
+            </p>
 
-//   await prisma.user.update({
-//     where: {
-//       email: userData.email,
-//     },
-//     data: {
-//       password: hashedPassword,
-//       needPasswordChange: false,
-//     },
-//   });
+        </div>
+        `
+  );
+};
 
-//   return {
-//     message: "Password changed successfully!",
-//   };
-// };
+const resetPassword = async (token: string, payload: { id: string; password: string }) => {
+  const userData = await prisma.user.findUniqueOrThrow({
+    where: {
+      id: payload.id,
+      status: UserStatus.ACTIVE,
+    },
+  });
 
-// const forgotPassword = async (payload: { email: string }) => {
-//   const userData = await prisma.user.findUniqueOrThrow({
-//     where: {
-//       email: payload.email,
-//       status: UserStatus.ACTIVE,
-//     },
-//   });
+  const isValidToken = jwtHelpers.verifyToken(token, config.jwt.reset_pass_secret!);
 
-//   const resetPassToken = jwtHelpers.generateToken(
-//     { email: userData.email, role: userData.role },
-//     config.jwt.reset_pass_secret as Secret,
-//     config.jwt.reset_pass_token_expires_in as string
-//   );
-//   //console.log(resetPassToken)
+  if (!isValidToken) {
+    throw new AppError(httpStatus.FORBIDDEN, "Forbidden!");
+  }
 
-//   const resetPassLink = config.reset_pass_link + `?userId=${userData.id}&token=${resetPassToken}`;
+  // hash password
+  const password = await bcrypt.hash(payload.password, 12);
 
-//   await emailSender(
-//     userData.email,
-//     `
-//         <div>
-//             <p>Dear User,</p>
-//             <p>Your password reset link
-//                 <a href=${resetPassLink}>
-//                     <button>
-//                         Reset Password
-//                     </button>
-//                 </a>
-//             </p>
+  // update into database
+  await prisma.user.update({
+    where: {
+      id: payload.id,
+    },
+    data: {
+      password,
+    },
+  });
 
-//         </div>
-//         `
-//   );
-//   //console.log(resetPassLink)
-// };
-
-// const resetPassword = async (token: string, payload: { id: string; password: string }) => {
-//   console.log({ token, payload });
-
-//   const userData = await prisma.user.findUniqueOrThrow({
-//     where: {
-//       id: payload.id,
-//       status: UserStatus.ACTIVE,
-//     },
-//   });
-
-//   const isValidToken = jwtHelpers.verifyToken(token, config.jwt.reset_pass_secret as Secret);
-
-//   if (!isValidToken) {
-//     throw new ApiError(httpStatus.FORBIDDEN, "Forbidden!");
-//   }
-
-//   // hash password
-//   const password = await bcrypt.hash(payload.password, 12);
-
-//   // update into database
-//   await prisma.user.update({
-//     where: {
-//       id: payload.id,
-//     },
-//     data: {
-//       password,
-//     },
-//   });
-// };
+  return null;
+};
 
 export const AuthServices = {
   registerUser,
@@ -324,7 +290,6 @@ export const AuthServices = {
   resendVerificationCode,
   loginUser,
   // refreshToken,
-  // changePassword,
-  // forgotPassword,
-  // resetPassword,
+  forgotPassword,
+  resetPassword,
 };

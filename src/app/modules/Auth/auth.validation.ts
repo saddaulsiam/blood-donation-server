@@ -43,9 +43,23 @@ const loginUser = z.object({
   }),
 });
 
+const forgotPassword = z.object({
+  body: z.object({
+    email: z.string({ required_error: "Email must be a valid email address." }).email(),
+  }),
+});
+const resetPassword = z.object({
+  body: z.object({
+    id: z.string({ required_error: "id is required" }),
+    password: z.string().min(6, "Password must be at least 6 characters long."),
+  }),
+});
+
 export const AuthValidation = {
   createUser,
   verifyEmail,
   resendVerificationCode,
   loginUser,
+  forgotPassword,
+  resetPassword,
 };
