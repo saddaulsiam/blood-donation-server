@@ -4,9 +4,15 @@ import { Secret } from "jsonwebtoken";
 import config from "../../../config";
 import { jwtHelpers } from "../../../helpers/jwtHelpers";
 import prisma from "../../../shared/prisma";
+import { generateVerificationCode } from "../../../helpers/generateVerificationCode";
+import { sendVerificationEmail } from "../../../helpers/sendVerificationEmail";
+import AppError from "../../errors/AppError";
+import httpStatus from "http-status";
 
 const registerUser = async (req: Request) => {
   const hashedPassword: string = await bcrypt.hash(req.body.password, 12);
+  const verificationCode = generateVerificationCode();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
   const userData = {
     name: req.body.name,
@@ -34,6 +40,17 @@ const registerUser = async (req: Request) => {
       data: profileData,
     });
 
+    await transactionClient.emailVerification.create({
+      data: {
+        userId: others.id,
+        code: verificationCode,
+        expiresAt: expiresAt,
+      },
+    });
+
+    // sand verification email to user
+    await sendVerificationEmail(others.email, verificationCode);
+
     return {
       ...others,
       profile: createdProfile,
@@ -41,6 +58,49 @@ const registerUser = async (req: Request) => {
   });
 
   return result;
+};
+
+const verifyEmail = async (payload: { email: string; code: string }) => {
+  const { email, code } = payload;
+
+  // Fetch the user along with its EmailVerification record
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: { EmailVerification: true },
+  });
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  // Check if the user is already verified
+  if (user.isEmailVerified) {
+    return { success: true, message: "Email is already verified" };
+  }
+
+  const emailVerification = user.EmailVerification;
+
+  if (!emailVerification) {
+    throw new AppError(httpStatus.BAD_REQUEST, "No verification record found");
+  }
+
+  // Check if the provided code matches and hasn't expired
+  if (emailVerification.code !== code || new Date() > emailVerification.expiresAt) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid or expired verification code");
+  }
+
+  // Atomically update the user as verified and remove the verification record
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { email },
+      data: { isEmailVerified: true },
+    });
+    await tx.emailVerification.delete({
+      where: { userId: user.id },
+    });
+  });
+
+  return { success: true, message: "Email successfully verified" };
 };
 
 const loginUser = async (payload: { email: string; password: string }) => {
@@ -214,6 +274,7 @@ const loginUser = async (payload: { email: string; password: string }) => {
 
 export const AuthServices = {
   registerUser,
+  verifyEmail,
   loginUser,
   // refreshToken,
   // changePassword,

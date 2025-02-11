@@ -8,20 +8,23 @@ datasource db {
 }
 
 model User {
-  id           String      @id @default(cuid())
-  name         String
-  email        String      @unique
-  password     String
-  bloodGroup   BloodGroup?
-  gender       Gender?
-  city         String?
-  area         String?
-  availability Boolean     @default(false)
-  profile      Profile?
-  role         UserRole    @default(USER)
-  status       UserStatus  @default(ACTIVE)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id              String      @id @default(cuid())
+  name            String
+  email           String      @unique
+  password        String
+  bloodGroup      BloodGroup?
+  gender          Gender?
+  city            String?
+  area            String?
+  availability    Boolean     @default(false)
+  role            UserRole    @default(USER)
+  status          UserStatus  @default(ACTIVE)
+  isEmailVerified Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  profile           Profile?
+  EmailVerification EmailVerification?
 
   requestsAsDonor     Request[] @relation("DonorRequests")
   requestsAsRequester Request[] @relation("RequesterRequests")
@@ -38,6 +41,17 @@ model Profile {
   updatedAt        DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id])
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  code      String
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("emailVerify")
 }
 
 model Request {

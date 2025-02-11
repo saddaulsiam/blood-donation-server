@@ -12,6 +12,9 @@ const router = express.Router();
 
 // auth
 router.post("/register", validateRequest(AuthValidation.createUser), AuthController.registerUser);
+
+router.post("/verify-email", validateRequest(AuthValidation.verifyEmail), AuthController.verifyEmail);
+
 router.post("/login", validateRequest(AuthValidation.loginUser), AuthController.loginUser);
 
 // user management

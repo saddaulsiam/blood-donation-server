@@ -17,11 +17,16 @@ const createUser = z.object({
     email: z.string({ required_error: "Email must be a valid email address." }).email(),
     password: z.string().min(6, "Password must be at least 6 characters long."),
     bloodGroup: BloodGroup.optional(),
-    gender: z.enum(["MALE", "FEMALE", "OTHERS"]).optional(),
+    gender: z.enum(["MALE", "FEMALE"]).optional(),
     city: z.string({ required_error: "city field is required." }).default(""),
     availability: z.boolean().default(false),
-    createdAt: z.date().default(new Date()),
-    updatedAt: z.date().default(new Date()),
+  }),
+});
+
+const verifyEmail = z.object({
+  body: z.object({
+    code: z.string(),
+    email: z.string({ required_error: "Email must be a valid email address." }).email(),
   }),
 });
 
@@ -34,5 +39,6 @@ const loginUser = z.object({
 
 export const AuthValidation = {
   createUser,
+  verifyEmail,
   loginUser,
 };

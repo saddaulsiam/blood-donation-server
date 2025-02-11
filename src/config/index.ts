@@ -13,4 +13,8 @@ export default {
     refresh_token_secret: process.env.REFRESH_TOKEN_SECRET,
     refresh_token_expires_in: process.env.REFRESH_TOKEN_EXPIRES_IN,
   },
+  email: {
+    email_user: process.env.EMAIL_USER,
+    email_password: process.env.EMAIL_PASSWORD,
+  },
 };
