@@ -9,5 +9,5 @@ export type RequestDonar = {
 };
 
 export type Status = {
-  status: "APPROVED" | "PENDING" | "REJECTED";
+  status: "APPROVED" | "PENDING" | "REJECTED" | "CANCEL";
 };

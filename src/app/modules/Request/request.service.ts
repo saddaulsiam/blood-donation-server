@@ -1,5 +1,11 @@
+import { RequestStatus } from "@prisma/client";
 import httpStatus from "http-status";
+import { generateApprovalNotificationEmail } from "../../../helpers/generateApprovalNotificationEmail";
+import { generateCancellationNotificationEmail } from "../../../helpers/generateCancellationNotificationEmail";
+import { generateDonorNotificationEmail } from "../../../helpers/generateDonorNotificationEmail";
+import { generateDonationRequestEmail } from "../../../helpers/generateRequestConfirmationEmail";
 import { paginationHelper } from "../../../helpers/paginationHelper";
+import { sendEmail } from "../../../helpers/sendEmail";
 import prisma from "../../../shared/prisma";
 import AppError from "../../errors/AppError";
 import { IAuthUser } from "../../interfaces/common";
@@ -41,20 +47,39 @@ const createRequest = async (user: IAuthUser, payload: RequestDonar) => {
       city: payload.city,
       message: payload.message,
     },
-    // include: {
-    //   donor: {
-    //     select: {
-    //       id: true,
-    //       name: true,
-    //       email: true,
-    //       bloodGroup: true,
-    //       availability: true,
-    //       createdAt: true,
-    //       updatedAt: true,
-    //       profile: true,
-    //     },
-    //   },
-    // },
+  });
+
+  //  Send confirmation email to the requester
+  await sendEmail({
+    email: requester.email,
+    subject: "Your Blood Donation Request is Submitted",
+    message: `Dear ${requester.name}, your blood donation request has been submitted successfully.`,
+    htmlMessage: generateDonationRequestEmail(
+      donor.name!,
+      donor.bloodGroup!,
+      donor.city!,
+      payload.dateOfDonation!,
+      result.id!,
+      payload.message
+    ),
+  });
+
+  // 2️⃣ Send email notification to donor
+  await sendEmail({
+    email: donor.email,
+    subject: "You Have Been Selected for Blood Donation",
+    message: `Dear ${donor.name}, you have been matched for an urgent blood donation request.`,
+    htmlMessage: generateDonorNotificationEmail(
+      donor.name,
+      requester.name,
+      donor.bloodGroup!,
+      payload.city,
+      payload.hospitalName,
+      payload.phoneNumber,
+      payload.dateOfDonation,
+      result.id,
+      payload.message
+    ),
   });
 
   return result;
@@ -139,14 +164,82 @@ const getRequestToDonate = async (user: IAuthUser, options: IPaginationOptions) 
 };
 
 const UpdateRequestStatus = async (id: string, payload: Status) => {
-  return await prisma.request.update({
+  const result = await prisma.request.update({
     where: {
       id: id,
     },
     data: {
       status: payload.status,
     },
+    include: {
+      donor: true,
+      requester: true,
+    },
   });
+
+  if (payload.status === RequestStatus.APPROVED) {
+    await sendEmail({
+      email: result.donor.email,
+      subject: "Your Approved Blood Donation Request!",
+      htmlMessage: generateApprovalNotificationEmail(
+        result.requester.name,
+        result.donor.name,
+        result.donor.bloodGroup!,
+        result.city,
+        result.hospitalName,
+        result.phoneNumber,
+        result.dateOfDonation,
+        result.id
+      ),
+    });
+    await sendEmail({
+      email: result.requester.email,
+      subject: "Your Blood Donation Request Has Been Approved!",
+      htmlMessage: generateApprovalNotificationEmail(
+        result.requester.name,
+        result.donor.name,
+        result.donor.bloodGroup!,
+        result.city,
+        result.hospitalName,
+        result.phoneNumber,
+        result.dateOfDonation,
+        result.id
+      ),
+    });
+  }
+
+  if (payload.status === RequestStatus.CANCEL) {
+    await sendEmail({
+      email: result.donor.email,
+      subject: "Request Has Been Cancelled",
+      htmlMessage: generateCancellationNotificationEmail(
+        result.requester.name,
+        result.donor.name,
+        result.donor.bloodGroup!,
+        result.city,
+        result.hospitalName,
+        result.phoneNumber,
+        result.dateOfDonation,
+        result.id
+      ),
+    });
+    await sendEmail({
+      email: result.requester.email,
+      subject: "Your Blood Donation Request Has Been Cancelled",
+      htmlMessage: generateCancellationNotificationEmail(
+        result.requester.name,
+        result.donor.name,
+        result.donor.bloodGroup!,
+        result.city,
+        result.hospitalName,
+        result.phoneNumber,
+        result.dateOfDonation,
+        result.id
+      ),
+    });
+  }
+
+  return result;
 };
 
 export const RequestServices = {
