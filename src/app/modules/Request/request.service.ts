@@ -54,6 +54,15 @@ const createRequest = async (user: IAuthUser, payload: RequestDonar) => {
     },
   });
 
+  await prisma.user.update({
+    where: {
+      id: payload.donorId,
+    },
+    data: {
+      availability: false,
+    },
+  });
+
   // 1️⃣ Send confirmation email to the requester
   await sendEmail({
     email: requester.email,
@@ -226,6 +235,15 @@ const UpdateRequestStatus = async (id: string, payload: Status) => {
   }
 
   if (payload.status === RequestStatus.CANCEL) {
+    await prisma.user.update({
+      where: {
+        id: result.donor.id,
+      },
+      data: {
+        availability: true,
+      },
+    });
+
     await sendEmail({
       email: result.donor.email,
       subject: "You Have Cancelled a Blood Donation Request",
