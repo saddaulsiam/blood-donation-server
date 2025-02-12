@@ -16,10 +16,9 @@ const createUser = z.object({
     name: z.string({ required_error: "Name field is required." }).min(3, "Name at least 3 characters"),
     email: z.string({ required_error: "Email must be a valid email address." }).email(),
     password: z.string().min(6, "Password must be at least 6 characters long."),
-    bloodGroup: BloodGroup.optional(),
-    gender: z.enum(["MALE", "FEMALE"]).optional(),
-    city: z.string({ required_error: "city field is required." }).default(""),
-    availability: z.boolean().default(false),
+    phoneNumber: z
+      .string({ required_error: "Phone number is required" })
+      .regex(/^\d{11}$/, "Phone number must be a 11-digit number"),
   }),
 });
 

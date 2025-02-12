@@ -3,13 +3,12 @@ import * as bcrypt from "bcrypt";
 import { Request } from "express";
 import httpStatus from "http-status";
 import config from "../../../config";
+import { resetPasswordEmail, verificationEmail } from "../../../helpers/generateEmail";
 import { generateVerificationCode } from "../../../helpers/generateVerificationCode";
 import { jwtHelpers } from "../../../helpers/jwtHelpers";
+import { sendEmail } from "../../../helpers/sendEmail";
 import prisma from "../../../shared/prisma";
 import AppError from "../../errors/AppError";
-import { sendEmail } from "../../../helpers/sendEmail";
-import { generateResetPasswordEmail } from "../../../helpers/generateResetPasswordEmail";
-import { generateVerificationEmail } from "../../../helpers/generateVerificationEmail";
 
 const registerUser = async (req: Request) => {
   const hashedPassword: string = await bcrypt.hash(req.body.password, 12);
@@ -19,6 +18,7 @@ const registerUser = async (req: Request) => {
   const userData = {
     name: req.body.name,
     email: req.body.email,
+    phoneNumber: req.body.phoneNumber,
     password: hashedPassword,
     bloodGroup: req.body.bloodGroup,
     city: req.body.city,
@@ -55,7 +55,7 @@ const registerUser = async (req: Request) => {
       email: others.email,
       subject: "Your Verification Code",
       message: `Your verification code is ${verificationCode}.`,
-      htmlMessage: generateVerificationEmail(verificationCode),
+      htmlMessage: verificationEmail(verificationCode),
     });
 
     return {
@@ -150,7 +150,7 @@ const resendVerificationCode = async ({ email }: { email: string }) => {
     email: user.email,
     subject: "Your Verification Code",
     message: `Your verification code is ${newCode}.`,
-    htmlMessage: generateVerificationEmail(newCode),
+    htmlMessage: verificationEmail(newCode),
   });
 
   return { success: true, message: "Verification code resent" };
@@ -256,7 +256,7 @@ const forgotPassword = async (payload: { email: string }) => {
     email: userData.email,
     subject: "Reset Your Password",
     message: `Click the link to reset your password: ${resetPassLink}`,
-    htmlMessage: generateResetPasswordEmail(resetPassLink),
+    htmlMessage: resetPasswordEmail(resetPassLink),
   });
 };
 

@@ -1,11 +1,11 @@
-export const generateResetPasswordEmail = (resetLink: string) => {
+const verificationEmail = (verificationCode: string) => {
   return `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Reset Your Password</title>
+      <title>Email Verification</title>
       <style>
         body {
           font-family: 'Arial', sans-serif;
@@ -35,19 +35,16 @@ export const generateResetPasswordEmail = (resetLink: string) => {
           font-size: 16px;
           line-height: 1.5;
         }
-        .button {
+        .code {
           display: inline-block;
           background: #ff4d4d;
           color: white;
-          font-size: 18px;
+          font-size: 20px;
           font-weight: bold;
           padding: 12px 24px;
           border-radius: 6px;
           margin: 20px 0;
           text-decoration: none;
-        }
-        .button:hover {
-          background: #e60000;
         }
         .footer {
           font-size: 12px;
@@ -59,13 +56,14 @@ export const generateResetPasswordEmail = (resetLink: string) => {
     <body>
       <div class="container">
         <img class="logo" src="https://blood-donation24.netlify.app/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo.3dff7855.jpg&w=48&q=75" alt="Blood Donation">
-        <h2>Reset Your Password</h2>
-        <p>You recently requested to reset your password. Click the button below to set up a new one. The link is valid for <strong>30 minutes</strong>.</p>
-        <a href="${resetLink}" class="button">Reset Password</a>
-        <p>If you didn't request a password reset, you can safely ignore this email.</p>
+        <h2>Email Verification</h2>
+        <p>Use the verification code below to complete your registration. The code is valid for <strong>10 minutes</strong>.</p>
+        <div class="code">${verificationCode}</div>
+        <p>If you didn't request this, you can safely ignore this email.</p>
         <p class="footer">Need help? Contact us at <a href="mailto:support@blooddonation.com">support@blooddonation.com</a></p>
       </div>
     </body>
     </html>
   `;
 };
+export default verificationEmail;

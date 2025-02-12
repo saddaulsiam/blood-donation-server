@@ -3,7 +3,11 @@ import { BloodGroup } from "../Auth/auth.validation";
 
 const updateProfile = z.object({
   body: z.object({
-    name: z.string(),
+    name: z.string({ required_error: "Name field is required." }).min(3, "Name at least 3 characters").optional(),
+    phoneNumber: z
+      .string()
+      .regex(/^\d{11}$/, "Phone number must be a 11-digit number")
+      .optional(),
     bloodGroup: BloodGroup.optional(),
     gender: z.enum(["MALE", "FEMALE", "OTHERS"]).optional(),
     city: z.string().optional(),
