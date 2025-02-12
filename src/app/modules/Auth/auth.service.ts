@@ -15,6 +15,43 @@ const registerUser = async (req: Request) => {
   const verificationCode = generateVerificationCode();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
+  const userAlreadyExists = await prisma.user.findUnique({
+    where: {
+      email: req.body.email,
+      isEmailVerified: false,
+    },
+    include: {
+      profile: true,
+    },
+  });
+
+  if (userAlreadyExists) {
+    // sand verification email to user
+    await sendEmail({
+      email: userAlreadyExists.email,
+      subject: "Your Verification Code",
+      message: `Your verification code is ${verificationCode}.`,
+      htmlMessage: verificationEmail(verificationCode),
+    });
+
+    await prisma.emailVerification.upsert({
+      where: {
+        userId: userAlreadyExists.id,
+      },
+      update: {
+        code: verificationCode,
+        expiresAt: expiresAt,
+      },
+      create: {
+        userId: userAlreadyExists.id,
+        code: verificationCode,
+        expiresAt: expiresAt,
+      },
+    });
+
+    return userAlreadyExists;
+  }
+
   const userData = {
     name: req.body.name,
     email: req.body.email,
@@ -157,7 +194,7 @@ const resendVerificationCode = async ({ email }: { email: string }) => {
 };
 
 const loginUser = async (payload: { email: string; password: string }) => {
-  const userData = await prisma.user.findUniqueOrThrow({
+  const userData = await prisma.user.findUnique({
     where: {
       email: payload.email,
       status: UserStatus.ACTIVE,
@@ -174,8 +211,39 @@ const loginUser = async (payload: { email: string; password: string }) => {
   const isCorrectPassword: boolean = await bcrypt.compare(payload.password, userData.password);
 
   if (!isCorrectPassword) {
-    throw new Error("Password incorrect!");
+    throw new AppError(httpStatus.BAD_REQUEST, "Password incorrect!");
   }
+
+  const verificationCode = generateVerificationCode();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  if (!userData.isEmailVerified) {
+    // sand verification email to user
+    await sendEmail({
+      email: userData.email,
+      subject: "Your Verification Code",
+      message: `Your verification code is ${verificationCode}.`,
+      htmlMessage: verificationEmail(verificationCode),
+    });
+
+    await prisma.emailVerification.upsert({
+      where: {
+        userId: userData.id,
+      },
+      update: {
+        code: verificationCode,
+        expiresAt: expiresAt,
+      },
+      create: {
+        userId: userData.id,
+        code: verificationCode,
+        expiresAt: expiresAt,
+      },
+    });
+
+    throw new AppError(httpStatus.BAD_REQUEST, "Verify your account first");
+  }
+
   const accessToken = jwtHelpers.generateToken(
     {
       email: userData.email,
