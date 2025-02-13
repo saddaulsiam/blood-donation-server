@@ -241,7 +241,7 @@ const loginUser = async (payload: { email: string; password: string }) => {
       },
     });
 
-    throw new AppError(httpStatus.BAD_REQUEST, "Verify your account first");
+    throw new AppError(httpStatus.FORBIDDEN, "Verify your account first");
   }
 
   const accessToken = jwtHelpers.generateToken(
