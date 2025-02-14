@@ -49,7 +49,9 @@ router.post(
   RequestControllers.createRequest
 );
 
-router.get("/requests", RequestControllers.getRequestsList);
+router.get("/requests", auth(), RequestControllers.getRequestsList);
+
+router.get("/request/:id", auth(), RequestControllers.getSingleRequest);
 
 router.put(
   "/update-request/:id",

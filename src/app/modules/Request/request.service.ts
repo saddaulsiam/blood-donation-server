@@ -145,6 +145,10 @@ const getRequestsList = async (params: any, options: IPaginationOptions) => {
         : {
             createdAt: "desc",
           },
+    include: {
+      donor: true,
+      requester: true,
+    },
   });
 
   const total = await prisma.request.count({
@@ -159,6 +163,16 @@ const getRequestsList = async (params: any, options: IPaginationOptions) => {
     },
     data: result,
   };
+};
+
+const getSingleRequest = async (id: string) => {
+  return await prisma.request.findUnique({
+    where: { id },
+    include: {
+      donor: true,
+      requester: true,
+    },
+  });
 };
 
 const getMyDonationRequest = async (user: IAuthUser, options: IPaginationOptions) => {
@@ -340,6 +354,7 @@ const UpdateRequestStatus = async (id: string, payload: Status) => {
 export const RequestServices = {
   createRequest,
   getRequestsList,
+  getSingleRequest,
   getMyDonationRequest,
   getRequestToDonate,
   UpdateRequestStatus,

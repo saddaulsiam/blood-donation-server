@@ -34,18 +34,18 @@ const getRequestsList = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// const getSingleRequest = catchAsync(async (req: Request, res: Response) => {
-//   const id = req.params.id;
+const getSingleRequest = catchAsync(async (req: Request, res: Response) => {
+  const id = req.params.id;
 
-//   const result = await UserServices.getSingleDonor(id);
+  const result = await RequestServices.getSingleRequest(id);
 
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: "User data fetched successfully",
-//     data: result,
-//   });
-// });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Request data fetched successfully",
+    data: result,
+  });
+});
 
 const getMyDonationRequest = catchAsync(async (req: Request & { user?: IAuthUser }, res: Response) => {
   const options = pick(req.query, ["limit", "page"]);
@@ -85,6 +85,7 @@ const UpdateRequestStatus = catchAsync(async (req, res) => {
 export const RequestControllers = {
   createRequest,
   getRequestsList,
+  getSingleRequest,
   getMyDonationRequest,
   getRequestToDonate,
   UpdateRequestStatus,
