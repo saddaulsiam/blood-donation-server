@@ -1,6 +1,11 @@
-import { RequestStatus } from "@prisma/client";
+import { Prisma, RequestStatus } from "@prisma/client";
 import httpStatus from "http-status";
 
+import {
+  approvalNotificationEmail,
+  cancellationNotificationEmail,
+  requestConfirmationEmail,
+} from "../../../helpers/generateEmail";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { sendEmail } from "../../../helpers/sendEmail";
 import prisma from "../../../shared/prisma";
@@ -8,11 +13,6 @@ import AppError from "../../errors/AppError";
 import { IAuthUser } from "../../interfaces/common";
 import { IPaginationOptions } from "../../interfaces/pagination";
 import { RequestDonar, Status } from "./request.interface";
-import {
-  approvalNotificationEmail,
-  cancellationNotificationEmail,
-  requestConfirmationEmail,
-} from "../../../helpers/generateEmail";
 
 const createRequest = async (user: IAuthUser, payload: RequestDonar) => {
   // Check if donor exists
@@ -102,6 +102,63 @@ const createRequest = async (user: IAuthUser, payload: RequestDonar) => {
   });
 
   return result;
+};
+
+const getRequestsList = async (params: any, options: IPaginationOptions) => {
+  const { page, limit, skip } = paginationHelper.calculatePagination(options);
+  const { date, searchTerm, ...filterData } = params;
+
+  const andCondions: Prisma.RequestWhereInput[] = [];
+
+  // if (params.searchTerm) {
+  //   andCondions.push({
+  //     OR: requestSearchAbleFields.map((field) => ({
+  //       [field]: {
+  //         contains: params.searchTerm,
+  //         mode: "insensitive",
+  //       },
+  //     })),
+  //   });
+  // }
+
+  if (Object.keys(filterData).length > 0) {
+    andCondions.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  const whereConditons: Prisma.RequestWhereInput = andCondions.length > 0 ? { AND: andCondions } : {};
+
+  const result = await prisma.request.findMany({
+    where: whereConditons,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
+  });
+
+  const total = await prisma.request.count({
+    where: whereConditons,
+  });
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: result,
+  };
 };
 
 const getMyDonationRequest = async (user: IAuthUser, options: IPaginationOptions) => {
@@ -282,6 +339,7 @@ const UpdateRequestStatus = async (id: string, payload: Status) => {
 
 export const RequestServices = {
   createRequest,
+  getRequestsList,
   getMyDonationRequest,
   getRequestToDonate,
   UpdateRequestStatus,

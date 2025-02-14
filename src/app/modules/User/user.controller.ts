@@ -69,10 +69,22 @@ const changePassword = catchAsync(async (req: Request & { user?: IAuthUser }, re
   });
 });
 
+const makeAdmin = catchAsync(async (req: Request & { user?: IAuthUser }, res: Response) => {
+  const result = await UserServices.makeAdmin(req.user as IAuthUser, req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Make admin successfully",
+    data: result,
+  });
+});
+
 export const UserControllers = {
   getDonorsList,
   getSingleDonor,
   getMyProfile,
   updateMyProfile,
   changePassword,
+  makeAdmin,
 };

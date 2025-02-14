@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, UserRole } from "@prisma/client";
 import * as bcrypt from "bcrypt";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import prisma from "../../../shared/prisma";
@@ -214,10 +214,36 @@ const changePassword = async (
   return { message: "Password updated successfully" };
 };
 
+const makeAdmin = async (user: IAuthUser, payload: { email: string }) => {
+  const isAdmin = await prisma.user.findUnique({
+    where: { email: user?.email, role: UserRole.ADMIN },
+  });
+
+  if (!isAdmin) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Your are not authorized !!");
+  }
+
+  const userInfo = await prisma.user.findUnique({
+    where: { email: payload?.email },
+  });
+
+  if (!userInfo) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const result = await prisma.user.update({
+    where: { email: payload.email },
+    data: { role: UserRole.ADMIN },
+  });
+
+  return result;
+};
+
 export const UserServices = {
   getDonorsList,
   getSingleDonor,
   getMyProfile,
   updateMyProfile,
   changePassword,
+  makeAdmin,
 };

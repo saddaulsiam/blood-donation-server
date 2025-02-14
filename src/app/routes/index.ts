@@ -10,19 +10,24 @@ import { UserValidation } from "../modules/User/user.validation";
 
 const router = express.Router();
 
-// auth
+// Auth routes
 router.post("/register", validateRequest(AuthValidation.createUser), AuthController.registerUser);
+
 router.post("/verify-email", validateRequest(AuthValidation.verifyEmail), AuthController.verifyEmail);
+
 router.post(
   "/resend-verification-code",
   validateRequest(AuthValidation.resendVerificationCode),
   AuthController.resendVerificationCode
 );
+
 router.post("/login", validateRequest(AuthValidation.loginUser), AuthController.loginUser);
+
 router.post("/forgot-password", validateRequest(AuthValidation.forgotPassword), AuthController.forgotPassword);
+
 router.post("/reset-password", validateRequest(AuthValidation.resetPassword), AuthController.resetPassword);
 
-// user management
+// User management routes
 router
   .route("/my-profile")
   .get(auth(), UserControllers.getMyProfile)
@@ -30,17 +35,21 @@ router
 
 router.put("/change-password", auth(), validateRequest(UserValidation.changePassword), UserControllers.changePassword);
 
-// donors
+router.put("/make-admin", auth(), validateRequest(UserValidation.makeAdmin), UserControllers.makeAdmin);
+
+// Donor routes
 router.get("/donors", UserControllers.getDonorsList);
 router.get("/donor/:id", UserControllers.getSingleDonor);
 
-//  requests
+// Donation requests routes
 router.post(
   "/donation-request",
   auth(),
   validateRequest(RequestValidation.createRequest),
   RequestControllers.createRequest
 );
+
+router.get("/requests", RequestControllers.getRequestsList);
 
 router.put(
   "/update-request/:id",

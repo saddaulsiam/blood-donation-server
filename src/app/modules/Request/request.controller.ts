@@ -4,6 +4,7 @@ import catchAsync from "../../../shared/catchAsync";
 import pick from "../../../shared/pick";
 import sendResponse from "../../../shared/sendResponse";
 import { IAuthUser } from "../../interfaces/common";
+import { requestFilterableFields } from "./request.constant";
 import { RequestDonar } from "./request.interface";
 import { RequestServices } from "./request.service";
 
@@ -17,6 +18,34 @@ const createRequest = catchAsync(async (req: Request & { user?: IAuthUser }, res
     data: result,
   });
 });
+
+const getRequestsList = catchAsync(async (req: Request, res: Response) => {
+  const filters = pick(req.query, requestFilterableFields);
+  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+
+  const result = await RequestServices.getRequestsList(filters, options);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Requests data fetched!",
+    meta: result.meta,
+    data: result.data,
+  });
+});
+
+// const getSingleRequest = catchAsync(async (req: Request, res: Response) => {
+//   const id = req.params.id;
+
+//   const result = await UserServices.getSingleDonor(id);
+
+//   sendResponse(res, {
+//     statusCode: httpStatus.OK,
+//     success: true,
+//     message: "User data fetched successfully",
+//     data: result,
+//   });
+// });
 
 const getMyDonationRequest = catchAsync(async (req: Request & { user?: IAuthUser }, res: Response) => {
   const options = pick(req.query, ["limit", "page"]);
@@ -55,6 +84,7 @@ const UpdateRequestStatus = catchAsync(async (req, res) => {
 
 export const RequestControllers = {
   createRequest,
+  getRequestsList,
   getMyDonationRequest,
   getRequestToDonate,
   UpdateRequestStatus,

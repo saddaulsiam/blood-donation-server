@@ -29,7 +29,14 @@ const changePassword = z.object({
   }),
 });
 
+const makeAdmin = z.object({
+  body: z.object({
+    email: z.string({ required_error: "Email must be a valid email address." }).email(),
+  }),
+});
+
 export const UserValidation = {
   updateProfile,
   changePassword,
+  makeAdmin,
 };

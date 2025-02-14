@@ -27,12 +27,12 @@ const registerUser = async (req: Request) => {
 
   if (userAlreadyExists) {
     // sand verification email to user
-    await sendEmail({
-      email: userAlreadyExists.email,
-      subject: "Your Verification Code",
-      message: `Your verification code is ${verificationCode}.`,
-      htmlMessage: verificationEmail(verificationCode),
-    });
+    // await sendEmail({
+    //   email: userAlreadyExists.email,
+    //   subject: "Your Verification Code",
+    //   message: `Your verification code is ${verificationCode}.`,
+    //   htmlMessage: verificationEmail(verificationCode),
+    // });
 
     await prisma.emailVerification.upsert({
       where: {
@@ -88,12 +88,12 @@ const registerUser = async (req: Request) => {
     });
 
     // sand verification email to user
-    await sendEmail({
-      email: others.email,
-      subject: "Your Verification Code",
-      message: `Your verification code is ${verificationCode}.`,
-      htmlMessage: verificationEmail(verificationCode),
-    });
+    // await sendEmail({
+    //   email: others.email,
+    //   subject: "Your Verification Code",
+    //   message: `Your verification code is ${verificationCode}.`,
+    //   htmlMessage: verificationEmail(verificationCode),
+    // });
 
     return {
       ...others,
