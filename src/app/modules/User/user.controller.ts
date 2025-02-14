@@ -80,6 +80,17 @@ const makeAdmin = catchAsync(async (req: Request & { user?: IAuthUser }, res: Re
   });
 });
 
+const changeUserStatus = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserServices.changeUserStatus(req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Change Status Successfully",
+    data: result,
+  });
+});
+
 export const UserControllers = {
   getDonorsList,
   getSingleDonor,
@@ -87,4 +98,5 @@ export const UserControllers = {
   updateMyProfile,
   changePassword,
   makeAdmin,
+  changeUserStatus,
 };

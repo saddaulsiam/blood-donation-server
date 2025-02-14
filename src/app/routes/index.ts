@@ -27,21 +27,28 @@ router.post("/forgot-password", validateRequest(AuthValidation.forgotPassword), 
 
 router.post("/reset-password", validateRequest(AuthValidation.resetPassword), AuthController.resetPassword);
 
-// User management routes
+//! User management routes
 router
   .route("/my-profile")
   .get(auth(), UserControllers.getMyProfile)
   .put(auth(), validateRequest(UserValidation.updateProfile), UserControllers.updateMyProfile);
 
+router.put(
+  "/change-user-status",
+  auth(),
+  validateRequest(UserValidation.changeUserStatus),
+  UserControllers.changeUserStatus
+);
+
 router.put("/change-password", auth(), validateRequest(UserValidation.changePassword), UserControllers.changePassword);
 
 router.put("/make-admin", auth(), validateRequest(UserValidation.makeAdmin), UserControllers.makeAdmin);
 
-// Donor routes
+//! Donor routes
 router.get("/donors", UserControllers.getDonorsList);
 router.get("/donor/:id", UserControllers.getSingleDonor);
 
-// Donation requests routes
+//! Donation requests routes
 router.post(
   "/donation-request",
   auth(),
@@ -57,8 +64,10 @@ router.put(
   "/update-request/:id",
   auth(),
   validateRequest(RequestValidation.updateRequest),
-  RequestControllers.UpdateRequestStatus
+  RequestControllers.updateRequestStatus
 );
+
+router.put("/request-complete-remainder/:id", auth(), RequestControllers.compleatRemainder);
 
 router.get("/get-my-requests", auth(), RequestControllers.getMyDonationRequest);
 router.get("/request-to-donate", auth(), RequestControllers.getRequestToDonate);

@@ -71,13 +71,24 @@ const getRequestToDonate = catchAsync(async (req: Request & { user?: IAuthUser }
   });
 });
 
-const UpdateRequestStatus = catchAsync(async (req, res) => {
-  const result = await RequestServices.UpdateRequestStatus(req.params.id, req.body);
+const updateRequestStatus = catchAsync(async (req: Request, res: Response) => {
+  const result = await RequestServices.updateRequestStatus(req.params.id, req.body);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Success Message",
+    data: result,
+  });
+});
+
+const compleatRemainder = catchAsync(async (req: Request, res: Response) => {
+  const result = await RequestServices.compleatRemainder(req.params.id);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Remainder send successfully",
     data: result,
   });
 });
@@ -88,5 +99,6 @@ export const RequestControllers = {
   getSingleRequest,
   getMyDonationRequest,
   getRequestToDonate,
-  UpdateRequestStatus,
+  updateRequestStatus,
+  compleatRemainder,
 };

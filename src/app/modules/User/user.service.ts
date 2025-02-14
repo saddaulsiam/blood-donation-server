@@ -1,4 +1,4 @@
-import { Prisma, UserRole } from "@prisma/client";
+import { Prisma, UserRole, UserStatus } from "@prisma/client";
 import * as bcrypt from "bcrypt";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import prisma from "../../../shared/prisma";
@@ -78,6 +78,9 @@ const getDonorsList = async (params: any, options: IPaginationOptions) => {
       availability: true,
       createdAt: true,
       updatedAt: true,
+      status: true,
+      isEmailVerified: true,
+      role: true,
       profile: true,
     },
   });
@@ -97,12 +100,12 @@ const getDonorsList = async (params: any, options: IPaginationOptions) => {
 };
 
 const getSingleDonor = async (id: string) => {
-  return await prisma.user.findUnique({
+  const result = await prisma.user.findUnique({
     where: { id },
     select: {
       id: true,
-      email: true,
       name: true,
+      email: true,
       phoneNumber: true,
       bloodGroup: true,
       city: true,
@@ -110,6 +113,9 @@ const getSingleDonor = async (id: string) => {
       availability: true,
       createdAt: true,
       updatedAt: true,
+      status: true,
+      isEmailVerified: true,
+      role: true,
       profile: true,
     },
   });
@@ -120,15 +126,18 @@ const getMyProfile = async (user: IAuthUser) => {
     where: { email: user?.email },
     select: {
       id: true,
-      email: true,
       name: true,
+      email: true,
       phoneNumber: true,
-      gender: true,
       bloodGroup: true,
       city: true,
+      gender: true,
       availability: true,
       createdAt: true,
       updatedAt: true,
+      status: true,
+      isEmailVerified: true,
+      role: true,
       profile: true,
     },
   });
@@ -239,6 +248,23 @@ const makeAdmin = async (user: IAuthUser, payload: { email: string }) => {
   return result;
 };
 
+const changeUserStatus = async ({ email, status }: { status: UserStatus; email: string }) => {
+  const userInfo = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!userInfo) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const result = await prisma.user.update({
+    where: { email },
+    data: { status: status },
+  });
+
+  return result;
+};
+
 export const UserServices = {
   getDonorsList,
   getSingleDonor,
@@ -246,4 +272,5 @@ export const UserServices = {
   updateMyProfile,
   changePassword,
   makeAdmin,
+  changeUserStatus,
 };

@@ -35,8 +35,15 @@ const makeAdmin = z.object({
   }),
 });
 
+const changeUserStatus = z.object({
+  body: z.object({
+    status: z.enum(["ACTIVE", "INACTIVE", "BLOCKED", "DELETED"]),
+  }),
+});
+
 export const UserValidation = {
   updateProfile,
   changePassword,
   makeAdmin,
+  changeUserStatus,
 };

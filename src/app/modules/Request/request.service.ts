@@ -255,7 +255,7 @@ const getRequestToDonate = async (user: IAuthUser, options: IPaginationOptions) 
   };
 };
 
-const UpdateRequestStatus = async (id: string, payload: Status) => {
+const updateRequestStatus = async (id: string, payload: Status) => {
   const result = await prisma.request.update({
     where: {
       id: id,
@@ -351,11 +351,21 @@ const UpdateRequestStatus = async (id: string, payload: Status) => {
   return result;
 };
 
+const compleatRemainder = async (id: string) => {
+  const result = await prisma.request.update({
+    where: { id },
+    data: { isComplete: true },
+  });
+
+  return result;
+};
+
 export const RequestServices = {
   createRequest,
   getRequestsList,
   getSingleRequest,
   getMyDonationRequest,
   getRequestToDonate,
-  UpdateRequestStatus,
+  updateRequestStatus,
+  compleatRemainder,
 };
