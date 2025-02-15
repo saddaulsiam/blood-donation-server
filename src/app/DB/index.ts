@@ -1,14 +1,13 @@
 import { UserRole, UserStatus } from "@prisma/client";
-import * as bcrypt from "bcrypt";
-import config from "../../config";
+import bcrypt from "bcrypt";
 import prisma from "../../shared/prisma";
 
 const seedAdmin = async () => {
   const admin = {
-    name: config.admin.admin_name as string,
-    email: config.admin.admin_email as string,
-    password: await bcrypt.hash("Siam420@$", 10),
-    phoneNumber: config.admin.admin_phone_number as string,
+    name: process.env.ADMIN_NAME!,
+    email: process.env.ADMIN_EMAIL!,
+    password: await bcrypt.hash(process.env.ADMIN_PASSWORD!, 10),
+    phoneNumber: process.env.ADMIN_PHONE_NUMBER!,
     role: UserRole.ADMIN,
     status: UserStatus.ACTIVE,
     isEmailVerified: true,
@@ -16,7 +15,7 @@ const seedAdmin = async () => {
 
   //when database is connected, we will check is there any user who is admin
   const isAdminExits = await prisma.user.findUnique({
-    where: { email: config.admin.admin_email, role: UserRole.ADMIN },
+    where: { email: process.env.ADMIN_EMAIL, role: UserRole.ADMIN },
   });
 
   if (!isAdminExits) {
