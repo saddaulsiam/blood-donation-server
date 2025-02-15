@@ -4,17 +4,10 @@ import config from "../../config";
 import prisma from "../../shared/prisma";
 
 const seedAdmin = async () => {
-  const password = config.admin.admin_password;
-  if (!password) {
-    throw new Error("❌ ADMIN_PASSWORD environment variable is not set.");
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
   const admin = {
     name: config.admin.admin_name!,
     email: config.admin.admin_email!,
-    password: hashedPassword,
+    password: await bcrypt.hash(config.admin.admin_password!, 10),
     phoneNumber: config.admin.admin_phone_number!,
     role: UserRole.ADMIN,
     status: UserStatus.ACTIVE,
@@ -27,9 +20,6 @@ const seedAdmin = async () => {
 
   if (!isAdminExists) {
     await prisma.user.create({ data: admin });
-    console.log("✅ Admin created successfully!");
-  } else {
-    console.log("⚠️ Admin already exists.");
   }
 };
 
