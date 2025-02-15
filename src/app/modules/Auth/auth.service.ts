@@ -11,7 +11,7 @@ import prisma from "../../../shared/prisma";
 import AppError from "../../errors/AppError";
 
 const registerUser = async (req: Request) => {
-  const hashedPassword: string = await bcrypt.hash(req.body.password, 12);
+  const hashedPassword: string = await bcrypt.hash(req.body.password, 10);
   const verificationCode = generateVerificationCode();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 

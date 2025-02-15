@@ -7,7 +7,7 @@ const seedAdmin = async () => {
   const admin = {
     name: config.admin.admin_name as string,
     email: config.admin.admin_email as string,
-    password: await bcrypt.hash(config.admin.admin_password as string, 12),
+    password: await bcrypt.hash(config.admin.admin_password!, 10),
     phoneNumber: config.admin.admin_phone_number as string,
     role: UserRole.ADMIN,
     status: UserStatus.ACTIVE,
