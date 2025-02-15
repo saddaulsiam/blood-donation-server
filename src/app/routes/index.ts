@@ -23,6 +23,8 @@ router.post(
 
 router.post("/login", validateRequest(AuthValidation.loginUser), AuthController.loginUser);
 
+router.post("/refresh-token", AuthController.refreshToken);
+
 router.post("/forgot-password", validateRequest(AuthValidation.forgotPassword), AuthController.forgotPassword);
 
 router.post("/reset-password", validateRequest(AuthValidation.resetPassword), AuthController.resetPassword);

@@ -245,8 +245,9 @@ const loginUser = async (payload: { email: string; password: string }) => {
 
   const accessToken = jwtHelpers.generateToken(
     {
-      email: userData.email,
       id: userData.id,
+      role: userData.role,
+      email: userData.email,
     },
     config.jwt.jwt_secret!,
     config.jwt.expires_in as string
@@ -254,8 +255,9 @@ const loginUser = async (payload: { email: string; password: string }) => {
 
   const refreshToken = jwtHelpers.generateToken(
     {
+      id: userData.id,
+      role: userData.role,
       email: userData.email,
-      // role: userData.role,
     },
     config.jwt.refresh_token_secret!,
     config.jwt.refresh_token_expires_in as string
@@ -269,35 +271,35 @@ const loginUser = async (payload: { email: string; password: string }) => {
   };
 };
 
-// const refreshToken = async (token: string) => {
-//   let decodedData;
-//   try {
-//     decodedData = jwtHelpers.verifyToken(token, config.jwt.refresh_token_secret!);
-//   } catch (err) {
-//     throw new Error("You are not authorized!");
-//   }
+const refreshToken = async (token: string) => {
+  let decodedData;
+  try {
+    decodedData = jwtHelpers.verifyToken(token, config.jwt.refresh_token_secret as string);
+  } catch (err) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "You are not authorized!");
+  }
 
-//   const userData = await prisma.user.findUniqueOrThrow({
-//     where: {
-//       email: decodedData.email,
-//       status: UserStatus.ACTIVE,
-//     },
-//   });
+  const userData = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: decodedData.email,
+      status: UserStatus.ACTIVE,
+    },
+  });
 
-//   const accessToken = jwtHelpers.generateToken(
-//     {
-//       email: userData.email,
-//       role: userData.role,
-//     },
-//     config.jwt.jwt_secret!,
-//     config.jwt.expires_in!
-//   );
+  const accessToken = jwtHelpers.generateToken(
+    {
+      id: userData.id,
+      role: userData.role,
+      email: userData.email,
+    },
+    config.jwt.jwt_secret!,
+    config.jwt.expires_in!
+  );
 
-//   return {
-//     accessToken,
-//     // needPasswordChange: userData.needPasswordChange,
-//   };
-// };
+  return {
+    accessToken,
+  };
+};
 
 const forgotPassword = async (payload: { email: string }) => {
   const userData = await prisma.user.findUnique({
@@ -361,7 +363,7 @@ export const AuthServices = {
   verifyEmail,
   resendVerificationCode,
   loginUser,
-  // refreshToken,
+  refreshToken,
   forgotPassword,
   resetPassword,
 };

@@ -47,6 +47,7 @@ const forgotPassword = z.object({
     email: z.string({ required_error: "Email must be a valid email address." }).email(),
   }),
 });
+
 const resetPassword = z.object({
   body: z.object({
     id: z.string({ required_error: "id is required" }),
