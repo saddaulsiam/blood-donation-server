@@ -119,6 +119,7 @@ const getSingleDonor = async (id: string) => {
       profile: true,
     },
   });
+  return result;
 };
 
 const getMyProfile = async (user: IAuthUser) => {

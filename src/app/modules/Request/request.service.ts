@@ -6,6 +6,7 @@ import {
   cancellationNotificationEmail,
   requestConfirmationEmail,
 } from "../../../helpers/generateEmail";
+import completeAlertEmail from "../../../helpers/generateEmail/completeAlertEmail";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { sendEmail } from "../../../helpers/sendEmail";
 import prisma from "../../../shared/prisma";
@@ -355,6 +356,48 @@ const compleatRemainder = async (id: string) => {
   const result = await prisma.request.update({
     where: { id },
     data: { isComplete: true },
+    include: {
+      donor: true,
+      requester: true,
+    },
+  });
+
+  // 1️⃣ Send alert to the requester
+  const res = await sendEmail({
+    email: result.requester.email,
+    subject: "Donation is complete or not",
+    message: `Dear ${result.requester.name}, Confirm that your donation complete or not`,
+    htmlMessage: completeAlertEmail(
+      result.requester.name,
+      result.donor.name,
+      result.donor.bloodGroup!,
+      result.city,
+      result.hospitalName,
+      result.donor.phoneNumber,
+      result.dateOfDonation!,
+      result.id!,
+      result.message,
+      false
+    ),
+  });
+
+  // 2️⃣ Send alert to the donor
+  await sendEmail({
+    email: result.donor.email,
+    subject: "Donation is complete or not",
+    message: `Dear ${result.donor.name}, Confirm that your donation complete or not`,
+    htmlMessage: completeAlertEmail(
+      result.donor.name,
+      result.requester.name,
+      result.requester.bloodGroup!,
+      result.city,
+      result.hospitalName,
+      result.requester.phoneNumber,
+      result.dateOfDonation!,
+      result.id!,
+      result.message,
+      false
+    ),
   });
 
   return result;

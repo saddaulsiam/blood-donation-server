@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-unused-vars */
 import { ErrorRequestHandler, NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import config from "../../config";
@@ -22,8 +20,6 @@ stack
 */
 
 const globalErrorHandler: ErrorRequestHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
-  // console.log(err?.name);
-  //setting default values
   let statusCode = 500;
   let message = "Something went wrong!";
   let errorSources: TErrorSources = [
@@ -48,14 +44,7 @@ const globalErrorHandler: ErrorRequestHandler = (err: any, req: Request, res: Re
     statusCode = simplifiedError?.statusCode;
     message = simplifiedError?.message;
     errorSources = simplifiedError?.errorSources;
-  }
-  // else if (err?.code === 11000) {
-  //   const simplifiedError = handleDuplicateError(err);
-  //   statusCode = simplifiedError?.statusCode;
-  //   message = simplifiedError?.message;
-  //   errorSources = simplifiedError?.errorSources;
-  // }
-  else if (err?.name === "PrismaClientKnownRequestError") {
+  } else if (err?.name === "PrismaClientKnownRequestError") {
     const simplifiedError = handleDuplicateError(err);
     statusCode = simplifiedError?.statusCode;
     message = simplifiedError?.message;

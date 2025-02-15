@@ -303,7 +303,6 @@ const forgotPassword = async (payload: { email: string }) => {
   const userData = await prisma.user.findUnique({
     where: {
       email: payload.email,
-      status: UserStatus.ACTIVE,
     },
   });
 
