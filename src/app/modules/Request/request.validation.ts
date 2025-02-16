@@ -14,7 +14,7 @@ const createRequest = z.object({
 
 const updateRequest = z.object({
   body: z.object({
-    status: z.enum(["PENDING", "APPROVED", "REJECTED", "CANCEL"]),
+    status: z.enum(["PENDING", "APPROVED", "REJECTED", "CANCEL", "SUCCESSFUL"]),
   }),
 });
 
