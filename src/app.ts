@@ -7,17 +7,20 @@ import router from "./app/routes";
 
 const app = express();
 
-// const allowedOrigins = ["https://blood-donation24.vercel.app", "http://localhost:3000"];
-/*  (origin, callback) => {
+const allowedOrigins = [
+  "https://blood-donation24.vercel.app",
+  "https://blood-donation24.netlify.app",
+  "http://localhost:3000",
+];
+
+const corsOptions: CorsOptions = {
+  origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
     }
-  } ,*/
-
-const corsOptions: CorsOptions = {
-  origin: ["https://blood-donation24.netlify.app"],
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
