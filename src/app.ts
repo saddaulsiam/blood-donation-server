@@ -8,7 +8,7 @@ import router from "./app/routes";
 const app: Application = express();
 
 const corsOptions: cors.CorsOptions = {
-  origin: "https://blood-donation24.netlify.app",
+  origin: "https://blood-donation24.vercel.app",
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
