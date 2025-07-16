@@ -1,18 +1,17 @@
 import cookieParser from "cookie-parser";
-import cors from "cors";
+import cors, { CorsOptions } from "cors";
 import express, { Application, Request, Response } from "express";
 import APINotFound from "./app/middlewares/APINotFound";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import router from "./app/routes";
 
-const app: Application = express();
+const app = express();
 
-const corsOptions: cors.CorsOptions = {
+const corsOptions = {
   origin: "https://blood-donation24.vercel.app",
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
-  optionsSuccessStatus: 204,
 };
 
 // Middleware
