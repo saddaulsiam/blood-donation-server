@@ -1,6 +1,5 @@
 import { Prisma, RequestStatus } from "@prisma/client";
 import httpStatus from "http-status";
-
 import {
   approvalNotificationEmail,
   cancellationNotificationEmail,
